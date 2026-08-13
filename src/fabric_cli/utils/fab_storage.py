@@ -39,7 +39,7 @@ def _write_to_local(
     file_dir = os.path.dirname(file_path)
 
     if not os.path.exists(file_dir):
-        os.makedirs(file_dir, exist_ok=False)
+        os.makedirs(file_dir, exist_ok=True)
 
     # Check if the data is binary
     is_binary = isinstance(data, (bytes, bytearray))
@@ -148,10 +148,17 @@ def get_export_path(output_path: str) -> dict:
             expanded_path = os.path.expanduser(output_path)
             if os.path.exists(expanded_path):
                 return {"type": "local", "path": expanded_path}
-            else:
+            # Export writes item subfolders under this directory anyway, so
+            # refusing to create the root forces a separate mkdir before every
+            # export. Create it, and only fail when that is not possible.
+            try:
+                os.makedirs(expanded_path, exist_ok=True)
+            except OSError:
                 raise FabricCLIError(
-                    ErrorMessages.Common.no_such_file_or_directory(), fab_constant.ERROR_INVALID_PATH
+                    ErrorMessages.Common.no_such_file_or_directory(),
+                    fab_constant.ERROR_INVALID_PATH,
                 )
+            return {"type": "local", "path": expanded_path}
 
     # Validate Fabric path if exists
     if onelake_export_path and isinstance(onelake_export_path, OneLakeItem):

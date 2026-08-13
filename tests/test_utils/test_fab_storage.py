@@ -96,10 +96,23 @@ def test_get_export_path_with_home_dir_success(mock_get_command_context, mock_ex
     mock_expanduser.assert_called_once_with("~/test.txt")
     assert result == {"type": "local", "path": "/home/user/test.txt"}
 
-def test_get_export_path_failure():
-    """Test get_export_path with non-existent path"""
+def test_get_export_path_creates_missing_directory(tmp_path):
+    """Export creates its output directory instead of refusing"""
+    target = tmp_path / "new_export_dir"
+
+    result = get_export_path(str(target))
+
+    assert result == {"type": "local", "path": str(target)}
+    assert target.is_dir()
+
+
+def test_get_export_path_failure(tmp_path):
+    """Test get_export_path when the output directory cannot be created"""
+    blocker = tmp_path / "blocker.txt"
+    blocker.write_text("not a directory", encoding="utf-8")
+
     with pytest.raises(FabricCLIError) as exc:
-        get_export_path("nonexistent.txt")
+        get_export_path(str(blocker / "child"))
     assert "No such file or directory" in str(exc.value)
 
 
@@ -138,5 +151,5 @@ def test_get_import_path_success():
 def test_get_import_path_failure():
     """Test get_import_path with non-existent path"""
     with pytest.raises(FabricCLIError) as exc:
-        get_import_path("nonexistent.txt")
+        get_import_path("nonexistent_import_path.txt")
     assert "No such file or directory" in str(exc.value)

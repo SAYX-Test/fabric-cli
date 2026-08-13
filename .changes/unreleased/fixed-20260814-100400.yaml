@@ -1,0 +1,6 @@
+kind: fixed
+body: Creates the export output directory when it does not exist, rather than failing with "No such file or directory"
+time: 2026-08-14T10:04:00.000000+12:00
+custom:
+    Author: StephenYakasInde
+    AuthorLink: https://github.com/StephenYakasInde
