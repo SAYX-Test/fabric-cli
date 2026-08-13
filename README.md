@@ -1,5 +1,16 @@
 # Microsoft Fabric CLI
 
+> **This is the SAYX-Test fork.** It tracks [microsoft/fabric-cli](https://github.com/microsoft/fabric-cli)
+> and adds five fixes: a corrected parent directory check, a `python -m fabric_cli` entry
+> point, definition format inference on import, automatic creation of the export output
+> directory, and Dataflow support for `job run`.
+>
+> **Install:** `pip install git+https://github.com/SAYX-Test/fabric-cli.git@main`
+>
+> Read **[FORK.md](./FORK.md)** first. It covers the changes, the Defender and TLS problems
+> you will hit on a managed Windows build, and what the CLI still cannot do. The rest of
+> this README is upstream's and describes the CLI itself.
+
 
 [![PyPi version](https://badgen.net/pypi/v/ms-fabric-cli/)](https://pypi.org/project/ms-fabric-cli)
 [![Python versions](https://img.shields.io/pypi/pyversions/ms-fabric-cli)](https://pypi.org/project/ms-fabric-cli)
