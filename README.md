@@ -8,8 +8,11 @@
 > **Install:** `pip install git+https://github.com/SAYX-Test/fabric-cli.git@main`
 >
 > Read **[FORK.md](./FORK.md)** first. It covers the changes, the Defender and TLS problems
-> you will hit on a managed Windows build, and what the CLI still cannot do. The rest of
-> this README is upstream's and describes the CLI itself.
+> you will hit on a managed Windows build, and what the CLI still cannot do.
+> **[FIELD-NOTES.md](./FIELD-NOTES.md)** indexes the errors we have hit by their exact
+> wording, with the real cause of each, and **[fork-tools/](./fork-tools/)** holds helper
+> scripts for the gaps: T-SQL, DAX, and the TLS bundle. The rest of this README is
+> upstream's and describes the CLI itself.
 
 
 [![PyPi version](https://badgen.net/pypi/v/ms-fabric-cli/)](https://pypi.org/project/ms-fabric-cli)

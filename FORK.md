@@ -8,6 +8,10 @@ deliberately small.
 Upstream docs stay authoritative for how the CLI works:
 <https://microsoft.github.io/fabric-cli/>.
 
+**Hit an error?** Read [FIELD-NOTES.md](./FIELD-NOTES.md) first. It indexes the errors we
+have hit by their exact wording and gives the real cause of each, which is often not what
+the message says. [fork-tools/](./fork-tools/) holds the helper scripts it refers to.
+
 ---
 
 ## Install
@@ -106,21 +110,12 @@ this look like an intermittent fault rather than a trust problem.
 Build a bundle that holds both, then point Python at it:
 
 ```powershell
-$out = "$HOME\.fab\corp-ca-bundle.pem"
-New-Item -ItemType Directory -Force -Path (Split-Path $out) | Out-Null
-Copy-Item (python -c "import certifi; print(certifi.where())") $out -Force
-foreach ($store in 'Cert:\LocalMachine\Root', 'Cert:\CurrentUser\Root', 'Cert:\LocalMachine\CA') {
-    Get-ChildItem $store | ForEach-Object {
-        $b64 = [Convert]::ToBase64String($_.RawData, 'InsertLineBreaks')
-        Add-Content $out "`n-----BEGIN CERTIFICATE-----`n$b64`n-----END CERTIFICATE-----"
-    }
-}
-[Environment]::SetEnvironmentVariable('REQUESTS_CA_BUNDLE', $out, 'User')
-[Environment]::SetEnvironmentVariable('SSL_CERT_FILE', $out, 'User')
+.\fork-tools\build-ca-bundle.ps1 -Persist
 ```
 
-Open a new shell afterwards. This helps any Python tool that talks to Fabric or Power BI,
-not only this CLI.
+Open a new shell afterwards. Without `-Persist` it prints the two environment variables to
+set for the current session only. This helps any Python tool that talks to Fabric or
+Power BI, not only this CLI.
 
 ---
 
@@ -128,8 +123,8 @@ not only this CLI.
 
 Worth knowing before you plan automation around it:
 
-- **No T-SQL and no DAX.** `fab table` covers load, optimize, schema and vacuum only.
-  Reading data needs a separate client, such as `pyodbc` with an Entra access token.
+- **No T-SQL and no DAX.** `fab table` covers load, optimize, schema and vacuum only. Use
+  `fork-tools/fabsql.py` and `fork-tools/dax_query.py`.
 - **Connection objects.** Items are referenced by id and work well. Anything needing a
   *connection* (a dataflow output destination, a semantic model refresh activity in a
   pipeline) needs that connection created first. Some can be created through
