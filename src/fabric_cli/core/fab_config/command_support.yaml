@@ -45,6 +45,7 @@ commands:
       - notebook
       - data_pipeline
       - lakehouse
+      - dataflow
     subcommands:
       run:
       run_cancel:

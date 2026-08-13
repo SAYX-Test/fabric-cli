@@ -328,6 +328,7 @@ class FabricJobType(Enum):
     RUN_NOTEBOOK = "RunNotebook"
     PIPELINE = "Pipeline"
     TABLE_MAINTENANCE = "TableMaintenance"
+    REFRESH = "Refresh"
 
 
 ITJobMap: dict[ItemType, FabricJobType] = {
@@ -339,6 +340,8 @@ ITJobMap: dict[ItemType, FabricJobType] = {
     ItemType.DATA_PIPELINE: FabricJobType.PIPELINE,
     # {"tableName": "orders", "optimizeSettings": {"vOrder": true, "zOrderBy": ["account_id"]}, "vacuumSettings": {"retentionPeriod": "7.01:00:00"}}
     ItemType.LAKEHOUSE: FabricJobType.TABLE_MAINTENANCE,
+    # Dataflow Gen2 refresh. Takes no job payload.
+    ItemType.DATAFLOW: FabricJobType.REFRESH,
 }
 
 ###################################
