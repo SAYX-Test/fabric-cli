@@ -10,7 +10,8 @@ import fabric_cli.utils.fab_item_util as item_utils
 from fabric_cli.client import fab_api_item as item_api
 from fabric_cli.commands.fs.export import fab_fs_export_item as _export_item
 from fabric_cli.core import fab_constant, fab_state_config
-from fabric_cli.core.fab_types import OneLakeItemType
+from fabric_cli.core.fab_exceptions import FabricCLIError
+from fabric_cli.core.fab_types import ItemType, OneLakeItemType
 from fabric_cli.core.hiearchy.fab_hiearchy import Item, OneLakeItem, Tenant, Workspace
 
 
@@ -122,3 +123,74 @@ def test_get_item_with_definition(monkeypatch):
 
     item = item_utils.get_item_with_definition(export_item, _args)
     assert item == {"item_exported": "item"}
+
+
+def _write_notebook_folder(root, definition_file_name):
+    folder = root / "nb1.Notebook"
+    folder.mkdir()
+    (folder / ".platform").write_text("{}", encoding="utf-8")
+    (folder / definition_file_name).write_text(
+        "# Fabric notebook source\n", encoding="utf-8"
+    )
+    return str(folder)
+
+
+def test_infer_definition_format_from_py_source(tmp_path):
+    folder = _write_notebook_folder(tmp_path, "notebook-content.py")
+
+    inferred = item_utils.infer_definition_format(ItemType.NOTEBOOK, folder)
+
+    assert inferred == "fabricGitSource"
+
+
+def test_infer_definition_format_from_ipynb_source(tmp_path):
+    folder = _write_notebook_folder(tmp_path, "notebook-content.ipynb")
+
+    inferred = item_utils.infer_definition_format(ItemType.NOTEBOOK, folder)
+
+    assert inferred == "ipynb"
+
+
+def test_infer_definition_format_returns_none_without_match(tmp_path):
+    folder = tmp_path / "lh1.Lakehouse"
+    folder.mkdir()
+
+    assert item_utils.infer_definition_format(ItemType.LAKEHOUSE, str(folder)) is None
+    assert item_utils.infer_definition_format(ItemType.NOTEBOOK, str(folder)) is None
+    assert item_utils.infer_definition_format(ItemType.NOTEBOOK, "missing_dir") is None
+
+
+def test_resolve_definition_format_infers_when_format_omitted(tmp_path):
+    """An exported .py notebook must import again without --format."""
+    folder = _write_notebook_folder(tmp_path, "notebook-content.py")
+
+    resolved = item_utils.resolve_definition_format(
+        item_type=ItemType.NOTEBOOK, format_param=None, input_path=folder
+    )
+
+    assert resolved == "fabricGitSource"
+
+
+def test_resolve_definition_format_explicit_format_wins(tmp_path):
+    folder = _write_notebook_folder(tmp_path, "notebook-content.py")
+
+    resolved = item_utils.resolve_definition_format(
+        item_type=ItemType.NOTEBOOK, format_param=".ipynb", input_path=folder
+    )
+
+    assert resolved == "ipynb"
+
+
+def test_resolve_definition_format_falls_back_to_default():
+    resolved = item_utils.resolve_definition_format(
+        item_type=ItemType.NOTEBOOK, format_param=None
+    )
+
+    assert resolved == "ipynb"
+
+
+def test_resolve_definition_format_rejects_unknown_format():
+    with pytest.raises(FabricCLIError):
+        item_utils.resolve_definition_format(
+            item_type=ItemType.NOTEBOOK, format_param=".txt"
+        )

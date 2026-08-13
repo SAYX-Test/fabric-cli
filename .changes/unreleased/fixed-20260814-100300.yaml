@@ -1,0 +1,6 @@
+kind: fixed
+body: Infers the item definition format from the files being imported, so an exported .py notebook can be imported again without repeating --format
+time: 2026-08-14T10:03:00.000000+12:00
+custom:
+    Author: StephenYakasInde
+    AuthorLink: https://github.com/StephenYakasInde

@@ -18,10 +18,6 @@ from fabric_cli.utils import fab_ui as utils_ui
 
 
 def import_single_item(item: Item, args: Namespace) -> None:
-    _input_format = fab_item_util.resolve_definition_format(
-        item_type=item.item_type, format_param=getattr(args, "format", None)
-    )
-
     args.ws_id = item.workspace.id
     input_path = utils_storage.get_import_path(args.input)
 
@@ -30,6 +26,14 @@ def import_single_item(item: Item, args: Namespace) -> None:
             f"Import only supports local paths. Unsupported input path type: '{input_path['type']}'.",
             fab_constant.ERROR_NOT_SUPPORTED,
         )
+
+    # Resolved after the input path so that the format can be inferred from the
+    # definition files when --format is omitted.
+    _input_format = fab_item_util.resolve_definition_format(
+        item_type=item.item_type,
+        format_param=getattr(args, "format", None),
+        input_path=input_path["path"],
+    )
 
     if args.force or utils_ui.prompt_confirm():
 

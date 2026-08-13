@@ -16,6 +16,7 @@ The module includes functions for:
 """
 
 import json
+import os
 import platform
 from argparse import Namespace
 from collections.abc import Sequence
@@ -133,11 +134,19 @@ def get_confirm_copy_move_message(is_move_command: bool) -> str:
     return confirm_message
 
 
-def resolve_definition_format(item_type: ItemType, format_param: Optional[str]) -> str:
+def resolve_definition_format(
+    item_type: ItemType,
+    format_param: Optional[str],
+    input_path: Optional[str] = None,
+) -> str:
     """Validate and resolve a user-supplied format against definition_format_mapping.
 
     Returns the resolved API format value (may be empty string for no-format items).
     Raises FabricCLIError if the format is invalid.
+
+    When no format is supplied and input_path points at a definition folder, the
+    format is inferred from the file extensions in that folder. This lets an
+    exported item be imported again without repeating --format.
     """
     valid_formats = definition_format_mapping.get(item_type, {})
 
@@ -152,5 +161,33 @@ def resolve_definition_format(item_type: ItemType, format_param: Optional[str]) 
             fab_constant.ERROR_INVALID_INPUT,
         )
 
-    # No format supplied — use the default
+    # No format supplied — infer it from the definition files when possible
+    if input_path:
+        inferred_format = infer_definition_format(item_type, input_path)
+        if inferred_format is not None:
+            return inferred_format
+
+    # Fall back to the default
     return valid_formats.get("default", "")
+
+
+def infer_definition_format(item_type: ItemType, input_path: str) -> Optional[str]:
+    """Infer a definition format from the files in a local definition folder.
+
+    Returns the resolved API format value, or None when nothing matches. Only
+    extension keys such as '.py' or '.ipynb' are considered, so item types whose
+    mapping holds no extensions always return None.
+    """
+    valid_formats = definition_format_mapping.get(item_type, {})
+    extensions = {key for key in valid_formats if key.startswith(".")}
+
+    if not extensions or not os.path.isdir(input_path):
+        return None
+
+    for root, _dirs, files in os.walk(input_path):
+        for file_name in sorted(files):
+            extension = os.path.splitext(file_name)[1].lower()
+            if extension in extensions:
+                return valid_formats[extension]
+
+    return None
