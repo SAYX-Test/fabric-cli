@@ -105,9 +105,9 @@ def get_command_context(
             if os.path.exists(local_path) and os.access(local_path, os.R_OK):
                 return LocalPath(local_path)
             # IF the parent directory of the local path exists in the local file system, return the local path
-            elif not raise_error and os.path.exists(
-                os.path.dirname(local_path)
-                and os.access(os.path.dirname(local_path), os.W_OK)
+            parent_dir = os.path.dirname(local_path)
+            if not raise_error and (
+                os.path.exists(parent_dir) and os.access(parent_dir, os.W_OK)
             ):
                 return LocalPath(local_path)
 

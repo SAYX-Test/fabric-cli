@@ -1,0 +1,6 @@
+kind: fixed
+body: Corrects the parent directory check in get_command_context, which passed a boolean to os.path.exists and so tested file descriptor 1 instead of the directory
+time: 2026-08-14T10:01:00.000000+12:00
+custom:
+    Author: StephenYakasInde
+    AuthorLink: https://github.com/StephenYakasInde
